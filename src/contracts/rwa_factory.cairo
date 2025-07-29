@@ -140,8 +140,7 @@ mod RWAFactory {
         }
 
         fn get_fractionalization_module(self: @ContractState) -> ContractAddress {
-            // TODO
-            unimplemented!();
+            self.fractionalization_module.read()
         }
     }
 }
