@@ -1,3 +1,6 @@
+use rwax::events::factory::{
+    AssetMetadataUpdated, AssetTokenized, TokenizerRoleGranted, TokenizerRoleRevoked,
+};
 use rwax::interfaces::irwa_factory::IRWAFactory;
 use rwax::structs::asset::AssetData;
 use starknet::ContractAddress;
@@ -60,6 +63,18 @@ mod RWAFactory {
         admin: ContractAddress,
         fractionalization_module: ContractAddress,
     ) {
+        // Initialize ERC721
+        self.erc721.initializer(name, symbol);
+
+        // Initialize SRC5
+        self.src5.initializer();
+
+        // Initialize AccessControl with admin
+        self.accesscontrol.initializer(admin);
+
+        // Initialize token counter
+        self.token_counter.write(0);
+
         // Store the fractionalization module address
         self.fractionalization_module.write(fractionalization_module);
     }
@@ -70,8 +85,28 @@ mod RWAFactory {
         fn tokenize_asset(
             ref self: ContractState, owner: ContractAddress, asset_data: AssetData,
         ) -> u256 {
-            // TODO
-            unimplemented!();
+            // Check that caller has TOKENIZER_ROLE
+            self.accesscontrol.assert_only_role(TOKENIZER_ROLE);
+
+            // Read and increment token_counter
+            let token_id = self.token_counter.read();
+            self.token_counter.write(token_id + 1);
+
+            // Store asset_data in the map
+            self.asset_data.write(token_id, asset_data);
+
+            // Mint NFT via ERC721
+            self.erc721.mint(owner, token_id);
+
+            // Emit AssetTokenized event
+            self
+                .emit(
+                    AssetTokenized {
+                        token_id, owner, asset_type: asset_data.asset_type, asset_data,
+                    },
+                );
+
+            token_id
         }
 
         fn update_asset_metadata(ref self: ContractState, token_id: u256, new_data: AssetData) {
@@ -80,28 +115,29 @@ mod RWAFactory {
         }
 
         fn grant_tokenizer_role(ref self: ContractState, account: ContractAddress) {
-            // TODO
-            unimplemented!();
+            self.accesscontrol.grant_role(TOKENIZER_ROLE, account);
+
+            // Emit TokenizerRoleGranted event
+            self.emit(TokenizerRoleGranted { account, granter: starknet::get_caller_address() });
         }
 
         fn revoke_tokenizer_role(ref self: ContractState, account: ContractAddress) {
-            // TODO
-            unimplemented!();
+            self.accesscontrol.revoke_role(TOKENIZER_ROLE, account);
+
+            // Emit TokenizerRoleRevoked event
+            self.emit(TokenizerRoleRevoked { account, revoker: starknet::get_caller_address() });
         }
 
-        fn get_asset_data(self: @ContractState, token_id: u256) -> felt252 {
-            // TODO
-            unimplemented!();
+        fn get_asset_data(self: @ContractState, token_id: u256) -> AssetData {
+            self.asset_data.read(token_id)
         }
 
         fn has_tokenizer_role(self: @ContractState, account: ContractAddress) -> bool {
-            // TODO
-            unimplemented!();
+            self.accesscontrol.has_role(TOKENIZER_ROLE, account)
         }
 
         fn get_total_assets(self: @ContractState) -> u256 {
-            // TODO
-            unimplemented!();
+            self.token_counter.read()
         }
 
         fn get_fractionalization_module(self: @ContractState) -> ContractAddress {
