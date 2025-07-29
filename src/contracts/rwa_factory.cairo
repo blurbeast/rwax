@@ -115,33 +115,33 @@ mod RWAFactory {
         }
 
         fn grant_tokenizer_role(ref self: ContractState, account: ContractAddress) {
-            self.accesscontrol.grant_role(TOKENIZER_ROLE, account);
-
-            // Emit TokenizerRoleGranted event
-            self.emit(TokenizerRoleGranted { account, granter: starknet::get_caller_address() });
+            // TODO
+            unimplemented!();
         }
 
         fn revoke_tokenizer_role(ref self: ContractState, account: ContractAddress) {
-            self.accesscontrol.revoke_role(TOKENIZER_ROLE, account);
-
-            // Emit TokenizerRoleRevoked event
-            self.emit(TokenizerRoleRevoked { account, revoker: starknet::get_caller_address() });
+            // TODO
+            unimplemented!();
         }
 
         fn get_asset_data(self: @ContractState, token_id: u256) -> AssetData {
-            self.asset_data.read(token_id)
+            // TODO
+            unimplemented!();
         }
 
         fn has_tokenizer_role(self: @ContractState, account: ContractAddress) -> bool {
-            self.accesscontrol.has_role(TOKENIZER_ROLE, account)
+            // TODO
+            unimplemented!();
         }
 
         fn get_total_assets(self: @ContractState) -> u256 {
-            self.token_counter.read()
+            // TODO
+            unimplemented!();
         }
 
         fn get_fractionalization_module(self: @ContractState) -> ContractAddress {
-            self.fractionalization_module.read()
+            // TODO
+            unimplemented!();
         }
     }
 }
