@@ -114,23 +114,19 @@ mod RWAFactory {
 
             // // Emit event
             self.emit(TokenizerRoleGranted { account, granter: caller });
-            // unimplemented!();
         }
 
         fn revoke_tokenizer_role(ref self: ContractState, account: ContractAddress) {
             // TODO
-            // unimplemented!();
             self.accessor_control.assert_only_role(ADMIN_ROLE);
             // Check if account has TOKENIZER_ROLE
-
             assert(
                 self.accessor_control.has_role(TOKENIZER_ROLE, account),
                 'Account does not have role',
             );
-            // // Revoke the role
+            // // Revoke the tokenizer role
             self.accessor_control.revoke_role(TOKENIZER_ROLE, account);
-            // // Emit event
-
+            // Emit event
             self.emit(TokenizerRoleRevoked { account, revoker: get_caller_address() });
         }
 
@@ -138,14 +134,14 @@ mod RWAFactory {
             // TODO
             // unimplemented!()
             AssetData {
-                asset_type: 0, // Placeholder for asset type
+                asset_type: 0, 
                 name: "",
                 description: "",
-                value_usd: 1000000, // Example value in USD
+                value_usd: 1000000, 
                 legal_doc_uri: "",
                 image_uri: "",
                 location: "",
-                created_at: 0 // Example timestamp
+                created_at: 0 
             }
         }
 
@@ -161,7 +157,7 @@ mod RWAFactory {
 
         fn get_fractionalization_module(self: @ContractState) -> ContractAddress {
             // self.fractionalization_module.read()
-            get_caller_address() // Placeholder for the actual implementation
+            get_caller_address() 
         }
     }
 }
