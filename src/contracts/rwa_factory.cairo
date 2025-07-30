@@ -1,3 +1,4 @@
+
 use rwax::events::factory::*;
 use rwax::interfaces::irwa_factory::IRWAFactory;
 use rwax::structs::asset::AssetData;
@@ -84,9 +85,28 @@ mod RWAFactory {
         fn tokenize_asset(
             ref self: ContractState, owner: ContractAddress, asset_data: AssetData,
         ) -> u256 {
-            // TODO
-            // unimplemented!();
-            1
+            // Check that caller has TOKENIZER_ROLE
+            self.accesscontrol.assert_only_role(TOKENIZER_ROLE);
+
+            // Read and increment token_counter
+            let token_id = self.token_counter.read();
+            self.token_counter.write(token_id + 1);
+
+            // Store asset_data in the map
+            self.asset_data.write(token_id, asset_data);
+
+            // Mint NFT via ERC721
+            self.erc721.mint(owner, token_id);
+
+            // Emit AssetTokenized event
+            self
+                .emit(
+                    AssetTokenized {
+                        token_id, owner, asset_type: asset_data.asset_type, asset_data,
+                    },
+                );
+
+            token_id
         }
 
         fn update_asset_metadata(
