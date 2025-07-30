@@ -11,3 +11,11 @@ pub mod structs {
     pub mod asset;
 }
 
+
+pub mod contracts {
+    mod rwa_factory;
+}
+
+mod test {
+    mod test;
+}

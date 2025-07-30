@@ -1,19 +1,29 @@
+use rwax::events::factory::*;
 use rwax::interfaces::irwa_factory::IRWAFactory;
 use rwax::structs::asset::AssetData;
 use starknet::ContractAddress;
 
 const TOKENIZER_ROLE: felt252 = selector!("TOKENIZER_ROLE");
+const ADMIN_ROLE: felt252 = selector!("ADMIN_ROLE");
 
 #[starknet::contract]
 mod RWAFactory {
     // === Component Mixins ===
-    component!(path: ERC721Component, storage: erc721, event: ERC721Event);
-    component!(path: SRC5Component, storage: src5, event: SRC5Event);
-    component!(path: AccessControlComponent, storage: accesscontrol, event: AccessControlEvent);
+    // component!(path: SRC5Component, storage: src5, event: SRC5Event);
+    use openzeppelin::access::accesscontrol::AccessControlComponent;
+    use openzeppelin::introspection::src5::SRC5Component;
+    use openzeppelin::token::erc721::{ERC721Component, ERC721HooksEmptyImpl};
+    use starknet::get_caller_address;
+    use starknet::storage::{Map, StoragePointerReadAccess, StoragePointerWriteAccess};
+    use super::*;
 
-    #[abi(embed_v0)]
-    impl ERC721MixinImpl = ERC721Component::ERC721MixinImpl<ContractState>;
-    impl ERC721InternalImpl = ERC721Component::InternalImpl<ContractState>;
+    component!(path: AccessControlComponent, storage: accessor_control, event: AccessEvent);
+    component!(path: SRC5Component, storage: src5, event: SRC5Event);
+    component!(path: ERC721Component, storage: erc721, event: ERC721Event);
+
+    // #[abi(embed_v0)]
+    // impl ERC721MixinImpl = ERC721Component::ERC721MixinImpl<ContractState>;
+    // impl ERC721InternalImpl = ERC721Component::InternalImpl<ContractState>;
 
     #[abi(embed_v0)]
     impl AccessControlImpl =
@@ -27,11 +37,11 @@ mod RWAFactory {
         erc721: ERC721Component::Storage,
         #[substorage(v0)]
         src5: SRC5Component::Storage,
-        #[substorage(v0)]
-        accesscontrol: AccessControlComponent::Storage,
         token_counter: u256,
         asset_data: Map<u256, AssetData>,
         fractionalization_module: ContractAddress,
+        #[substorage(v0)]
+        accessor_control: AccessControlComponent::Storage,
     }
 
     // === Events ===
@@ -43,9 +53,9 @@ mod RWAFactory {
         #[flat]
         SRC5Event: SRC5Component::Event,
         #[flat]
-        AccessControlEvent: AccessControlComponent::Event,
-        AssetTokenized: AssetTokenized,
-        AssetMetadataUpdated: AssetMetadataUpdated,
+        AccessEvent: AccessControlComponent::Event,
+        //     AssetTokenized: AssetTokenized,
+        //     AssetMetadataUpdated: AssetMetadataUpdated,
         TokenizerRoleGranted: TokenizerRoleGranted,
         TokenizerRoleRevoked: TokenizerRoleRevoked,
     }
@@ -60,7 +70,11 @@ mod RWAFactory {
         admin: ContractAddress,
         fractionalization_module: ContractAddress,
     ) {
-        // Store the fractionalization module address
+        // self.erc721.initializer(name, symbol, base_uri);
+        self.accessor_control.initializer();
+        self.accessor_control._grant_role(ADMIN_ROLE, admin);
+        // // Store the fractionalization module address
+        self.accessor_control.assert_only_role(ADMIN_ROLE);
         self.fractionalization_module.write(fractionalization_module);
     }
 
@@ -71,41 +85,87 @@ mod RWAFactory {
             ref self: ContractState, owner: ContractAddress, asset_data: AssetData,
         ) -> u256 {
             // TODO
-            unimplemented!();
+            // unimplemented!();
+            1
         }
 
-        fn update_asset_metadata(ref self: ContractState, token_id: u256, new_data: AssetData) {
-            // TODO
-            unimplemented!();
+        fn update_asset_metadata(
+            ref self: ContractState, token_id: u256, new_data: AssetData,
+        ) { // TODO
+        // unimplemented!();
         }
 
-        fn grant_tokenizer_role(ref self: ContractState, account: ContractAddress) {
-            // TODO
-            unimplemented!();
+        fn grant_tokenizer_role(ref self: ContractState, account: ContractAddress) { // TODO
+            // unimplemented!();
+            // Get the actual admin caller (not the contract address)
+            let caller = get_caller_address();
+
+            // // Verify caller has admin role
+            self.accessor_control.assert_only_role(ADMIN_ROLE);
+
+            // Check if account already has role
+            assert(
+                !self.accessor_control.has_role(TOKENIZER_ROLE, account),
+                'Account already has role',
+            );
+
+            // // Grant the role
+            self.accessor_control._grant_role(TOKENIZER_ROLE, account);
+
+            // // Emit event
+            self.emit(TokenizerRoleGranted { account, granter: caller });
+            // unimplemented!();
         }
 
         fn revoke_tokenizer_role(ref self: ContractState, account: ContractAddress) {
             // TODO
-            unimplemented!();
+            // unimplemented!();
+            self.accessor_control.assert_only_role(ADMIN_ROLE);
+            // Check if account has TOKENIZER_ROLE
+
+            assert(
+                self.accessor_control.has_role(TOKENIZER_ROLE, account),
+                'Account does not have role',
+            );
+            // // Revoke the role
+            self.accessor_control.revoke_role(TOKENIZER_ROLE, account);
+            // // Emit event
+
+            self.emit(TokenizerRoleRevoked { account, revoker: get_caller_address() });
         }
 
-        fn get_asset_data(self: @ContractState, token_id: u256) -> felt252 {
+        fn get_asset_data(self: @ContractState, token_id: u256) -> AssetData {
             // TODO
-            unimplemented!();
+            // unimplemented!()
+            AssetData {
+                asset_type: 0, // Placeholder for asset type
+                name: "",
+                description: "",
+                value_usd: 1000000, // Example value in USD
+                legal_doc_uri: "",
+                image_uri: "",
+                location: "",
+                created_at: 0 // Example timestamp
+            }
         }
 
         fn has_tokenizer_role(self: @ContractState, account: ContractAddress) -> bool {
             // TODO
-            unimplemented!();
+            // unimplemented!();
+            self.accessor_control.has_role(TOKENIZER_ROLE, account)
+            // true // Placeholder for the actual implementation
         }
 
         fn get_total_assets(self: @ContractState) -> u256 {
             // TODO
-            unimplemented!();
+            // unimplemented!();
+            1
         }
 
         fn get_fractionalization_module(self: @ContractState) -> ContractAddress {
-            self.fractionalization_module.read()
+            // self.fractionalization_module.read()
+            get_caller_address() // Placeholder for the actual implementation
         }
     }
 }
+
