@@ -64,7 +64,7 @@ mod RWAFactory {
         fractionalization_module: ContractAddress,
     ) {
         // Initialize ERC721
-        self.erc721.initializer(name, symbol,base_uri);
+        self.erc721.initializer(name, symbol, base_uri);
 
         // Initialize SRC5
         self.src5.initializer();

@@ -107,22 +107,3 @@ fn test_basic_functionality() {
     assert(asset_data.value_usd == 200, 'Value should be 200');
     assert(asset_data.name == "Gold Bar", 'Name should be Gold Bar');
 }
-
-// Test numeric operations
-#[test]
-fn test_numeric_operations() {
-    let value: felt252 = 100;
-    let token_id = 0_u256;
-    let created_at: felt252 = 100;
-
-    assert(value == 100, 'Value should be 100');
-    assert(token_id == 0_u256, 'Token ID should be 0');
-    assert(created_at == 100, 'Created at should match');
-
-    // Test increment
-    let next_token_id = token_id + 1_u256;
-    assert(next_token_id == 1_u256, 'Next token ID should be 1');
-
-    let next_value = value + 50;
-    assert(next_value == 150, 'Next value should be 150');
-}
