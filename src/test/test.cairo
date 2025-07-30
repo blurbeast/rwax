@@ -24,7 +24,8 @@ mod test {
     //     admin.serialize(ref constructor_calldata);
     //     fractionalization_module.serialize(ref constructor_calldata);
 
-    //     // let constructor_calldata = array![name, admin.into(), fractionalization_module.into()];
+    //     // let constructor_calldata = array![name, admin.into(),
+    //     fractionalization_module.into()];
     //     start_cheat_caller_address_global(admin);
     //     let (address, _) = contract.deploy(@constructor_calldata).unwrap();
     //     IRWAFactoryDispatcher { contract_address: address }
@@ -54,6 +55,6 @@ mod test {
     // // #[test]
     // // fn test_only_admin_can_revoke_tokenizer() {
     // //     let dispatcher = deploy_rwa_factory();
-        
+
     // // }
 }
