@@ -14,7 +14,7 @@ mod RWAFactory {
     use openzeppelin::introspection::src5::SRC5Component;
     use openzeppelin::token::erc721::{ERC721Component, ERC721HooksEmptyImpl};
     use starknet::get_caller_address;
-    use starknet::storage::{Map, StoragePointerReadAccess, StoragePointerWriteAccess};
+    use starknet::storage::{Map, StoragePointerWriteAccess};
     use super::*;
 
     component!(path: AccessControlComponent, storage: accessor_control, event: AccessEvent);
