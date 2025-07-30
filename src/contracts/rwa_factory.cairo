@@ -1,4 +1,3 @@
-
 use rwax::events::factory::*;
 use rwax::interfaces::irwa_factory::IRWAFactory;
 use rwax::structs::asset::AssetData;
@@ -15,21 +14,26 @@ mod RWAFactory {
     use openzeppelin::introspection::src5::SRC5Component;
     use openzeppelin::token::erc721::{ERC721Component, ERC721HooksEmptyImpl};
     use starknet::get_caller_address;
-    use starknet::storage::{Map, StoragePointerWriteAccess};
+    use starknet::storage::{
+        Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
+    };
     use super::*;
 
     component!(path: AccessControlComponent, storage: accessor_control, event: AccessEvent);
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
     component!(path: ERC721Component, storage: erc721, event: ERC721Event);
 
-    // #[abi(embed_v0)]
-    // impl ERC721MixinImpl = ERC721Component::ERC721MixinImpl<ContractState>;
-    // impl ERC721InternalImpl = ERC721Component::InternalImpl<ContractState>;
+    #[abi(embed_v0)]
+    impl ERC721MixinImpl = ERC721Component::ERC721MixinImpl<ContractState>;
+    impl ERC721InternalImpl = ERC721Component::InternalImpl<ContractState>;
 
     #[abi(embed_v0)]
     impl AccessControlImpl =
         AccessControlComponent::AccessControlImpl<ContractState>;
     impl AccessControlInternalImpl = AccessControlComponent::InternalImpl<ContractState>;
+
+    // #[abi(embed_v0)]
+    // impl SRC5Impl = SRC5Component::SRC5Impl<ContractState>;
 
     // === Storage ===
     #[storage]
@@ -55,7 +59,7 @@ mod RWAFactory {
         SRC5Event: SRC5Component::Event,
         #[flat]
         AccessEvent: AccessControlComponent::Event,
-        //     AssetTokenized: AssetTokenized,
+        AssetTokenized: AssetTokenized,
         //     AssetMetadataUpdated: AssetMetadataUpdated,
         TokenizerRoleGranted: TokenizerRoleGranted,
         TokenizerRoleRevoked: TokenizerRoleRevoked,
@@ -71,7 +75,7 @@ mod RWAFactory {
         admin: ContractAddress,
         fractionalization_module: ContractAddress,
     ) {
-        // self.erc721.initializer(name, symbol, base_uri);
+        self.erc721.initializer(name, symbol, base_uri);
         self.accessor_control.initializer();
         self.accessor_control._grant_role(ADMIN_ROLE, admin);
         // // Store the fractionalization module address
@@ -86,23 +90,26 @@ mod RWAFactory {
             ref self: ContractState, owner: ContractAddress, asset_data: AssetData,
         ) -> u256 {
             // Check that caller has TOKENIZER_ROLE
-            self.accesscontrol.assert_only_role(TOKENIZER_ROLE);
+            self.accessor_control.assert_only_role(TOKENIZER_ROLE);
 
             // Read and increment token_counter
             let token_id = self.token_counter.read();
             self.token_counter.write(token_id + 1);
+            let asset_type = @asset_data.asset_type;
+            let asset__data = asset_data.clone();
 
             // Store asset_data in the map
-            self.asset_data.write(token_id, asset_data);
+            self.asset_data.entry(token_id).write(asset_data);
 
             // Mint NFT via ERC721
-            self.erc721.mint(owner, token_id);
+            self.erc721.mint(owner, token_id); // Restored _mint call
 
             // Emit AssetTokenized event
+
             self
                 .emit(
                     AssetTokenized {
-                        token_id, owner, asset_type: asset_data.asset_type, asset_data,
+                        token_id, owner: owner, asset_type: *asset_type, asset_data: asset__data,
                     },
                 );
 

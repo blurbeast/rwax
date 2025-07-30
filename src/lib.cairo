@@ -16,6 +16,3 @@ pub mod contracts {
     mod rwa_factory;
 }
 
-mod test {
-    mod test;
-}
