@@ -95,8 +95,7 @@ mod RWAFactory {
         }
 
         fn has_tokenizer_role(self: @ContractState, account: ContractAddress) -> bool {
-            // TODO
-            unimplemented!();
+            self.accesscontrol.has_role(TOKENIZER_ROLE, account)
         }
 
         fn get_total_assets(self: @ContractState) -> u256 {
