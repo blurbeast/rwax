@@ -89,6 +89,7 @@ mod RWAFactory {
         // The admin now has the DEFAULT_ADMIN_ROLE
         self.accesscontrol.initializer();
         self.accesscontrol._grant_role(DEFAULT_ADMIN_ROLE, admin);
+        self.accesscontrol._grant_role(TOKENIZER_ROLE, admin);
 
         self.token_counter.write(0_u256);
         self.fractionalization_module.write(fractionalization_module);
@@ -114,8 +115,24 @@ mod RWAFactory {
             token_id
         }
 
-        // TODO: update_asset_metadata
-        fn update_asset_metadata(ref self: ContractState, token_id: u256, new_data: AssetData) {}
+        fn update_asset_metadata(ref self: ContractState, token_id: u256, new_data: AssetData) {
+            // Check that the token exists
+            let owner = self.erc721.owner_of(token_id);
+
+            // Check that caller is either owner or approved operator
+            let caller = get_caller_address();
+            let is_owner = caller == owner;
+            let is_approved = self.erc721.is_approved_for_all(owner, caller)
+                || self.erc721.get_approved(token_id) == caller;
+
+            assert(is_owner || is_approved, 'Not authorized');
+
+            // Update asset_data with new metadata
+            self.asset_data.write(token_id, new_data.clone());
+
+            // Emit AssetMetadataUpdated event
+            self.emit(AssetMetadataUpdated { token_id, updater: caller, new_data });
+        }
 
         // TODO: grant_tokenizer_role
         fn grant_tokenizer_role(ref self: ContractState, account: ContractAddress) {}
