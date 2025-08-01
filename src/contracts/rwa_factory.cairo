@@ -18,7 +18,7 @@ use starknet::{ContractAddress, get_caller_address};
 const TOKENIZER_ROLE: felt252 = selector!("TOKENIZER_ROLE");
 
 #[starknet::contract]
-mod RWAFactory {
+pub mod RWAFactory {
     // Note: All imports were moved outside the mod block as per your original code.
     // If you were to follow a different pattern, they might be placed here.
     use super::{
@@ -64,7 +64,7 @@ mod RWAFactory {
     // === Events ===
     #[event]
     #[derive(Drop, starknet::Event)]
-    enum Event {
+    pub enum Event {
         // Corrected: Updated event syntax to use #[flat]
         #[flat]
         ERC721Event: ERC721Component::Event,
@@ -139,7 +139,7 @@ mod RWAFactory {
         }
 
         // TODO: grant_tokenizer_role
-         fn grant_tokenizer_role(ref self: ContractState, account: ContractAddress) {
+        fn grant_tokenizer_role(ref self: ContractState, account: ContractAddress) {
             // Check that caller has DEFAULT_ADMIN_ROLE
             self.accesscontrol.assert_only_role(DEFAULT_ADMIN_ROLE);
 
