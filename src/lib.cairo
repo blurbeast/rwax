@@ -5,8 +5,6 @@ pub mod interfaces {
 pub mod events {
     pub mod factory;
     pub mod fractionalization;
-    pub mod marketplace;
-    pub mod oracle;
 }
 
 pub mod structs {
