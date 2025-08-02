@@ -168,7 +168,10 @@ fn test_multiple_revokes() {
 
     // Revoke second time (should not fail)
     rwa_factory.revoke_tokenizer_role(tokenizer);
-    assert!(!rwa_factory.has_tokenizer_role(tokenizer), "Should still not have role after second revoke");
+    assert!(
+        !rwa_factory.has_tokenizer_role(tokenizer),
+        "Should still not have role after second revoke",
+    );
 
     stop_cheat_caller_address(contract_address);
 }
